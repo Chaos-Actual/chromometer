@@ -4,14 +4,30 @@ from datetime import datetime
 from tkinter.ttk import Progressbar, Style
 from threading import Thread
 
+
+
+
 #Progress Bar Length
 PLEN = 250
 BACKGROUND ='#3299a8'
 #microsecond constants
-MICROSECONDS = 1000000
+MICROSECONDS = 1000000.0
 MICROMINUTES = MICROSECONDS * 60
 MICROHOURS = MICROMINUTES * 60
-MICRODAY  = MICROHOURS * 12        
+MICRODAY  = MICROHOURS * 24 
+
+now = datetime.now()
+if((now.year % 400 == 0) or  
+     (now.year % 100 != 0) and  
+     (now.year % 4 == 0)):   
+     LEAPYEAR = 1
+else:
+    LEAPYEAR =0 
+
+MICROYEAR = MICRODAY * (365+LEAPYEAR)
+
+
+     
             
 app = Tk()
 app_style = Style()
@@ -56,28 +72,29 @@ def month_days(d,year):
 
 def  Create_time_labels():
     labels = [
-    Label(app,text="Second",background=BACKGROUND),
-    Label(app,text="Minute",background=BACKGROUND),
-    Label(app,text="Hour",background=BACKGROUND),
-    Label(app,text="Day",background=BACKGROUND),
-    Label(app,text="Month",background=BACKGROUND)
+    Label(app,text="Second",background=BACKGROUND, anchor='e', width=6,justify='right'),
+    Label(app,text="Minute",background=BACKGROUND, anchor='e', width=6,justify='right'),
+    Label(app,text="Hour",background=BACKGROUND, anchor='e',width=6,justify='right'),
+    Label(app,text="Day",background=BACKGROUND, anchor='e',width=6,justify='right'),
+    Label(app,text="Month",background=BACKGROUND, anchor='e', width=6,justify='right'),
+    Label(app,text="Year",background=BACKGROUND, anchor='e', width=6,justify='right')
     ]
-    for i in range(5):
+    for i in range(6):
         labels[i].grid(row=i+1,column=0)
     return labels
     
 def Create_time_count_labels():
     column= 1
     labels =[]
-    for i in range(5):
-        labels.append(Label(app,text=i,background=BACKGROUND,relief='ridge',width=10,justify=RIGHT))
+    for i in range(6):
+        labels.append(Label(app,text=i,background=BACKGROUND,relief='ridge',anchor='w', width=12,justify='right'))
         labels[i].grid(row=i+1,column=column)       
     return labels
 
 def Create_progress_bars():
     column= 2
     pbars =[]
-    for i in range(5):
+    for i in range(6):
         pbars.append(Progressbar(app, orient=HORIZONTAL,
                 style="mine.Horizontal.TProgressbar",
                 length=PLEN, mode="determinate"))
@@ -87,7 +104,7 @@ def Create_progress_bars():
 def Create_percent_labels():
     column= 3
     labels =[]
-    for i in range(5):
+    for i in range(6):
         labels.append(Label(app,text=i,background=BACKGROUND))
         labels[i].grid(row=i+1,column=column)       
     return labels   
@@ -98,34 +115,40 @@ def Seconds():
     time_display.config(text=now)
     s_micro = now.second * MICROSECONDS + now.microsecond
     m_micro = now.minute * MICROMINUTES + s_micro
-    h_micro = now.hour * MICROMINUTES + m_micro
+    h_micro = now.hour * MICROHOURS + m_micro
     d_micro = now.day * MICRODAY + h_micro
+    
 
-    t_percent =   (now.microsecond /MICROSECONDS) * 100
+    t_percent =   (now.microsecond /MICROSECONDS) 
+    label_time_count[row].config(text='%10.8f' %( now.second +t_percent))
+    t_percent *= 100
     pbars[row]['value'] = t_percent
-    label_time_count[row].config(text='%d.%d' %( now.second ,now.microsecond))
     label_percents[row].config(text="{:.0f}%".format(t_percent))
     
 # Minutes():
     row +=1
-    t_percent =   (s_micro/MICROMINUTES) * 100
+    t_percent =   (s_micro/MICROMINUTES) 
+    label_time_count[row].config(text='{:10.8f}'.format( now.minute +t_percent))
+    t_percent *=100
     pbars[row]['value'] = t_percent
-    label_time_count[row].config(text='%f' %( now.minute +s_micro/MICROMINUTES%1))
     label_percents[row].config(text="{:.0f}%".format(t_percent))
     
 
 # Hours():
     row +=1
-    t_percent =   (m_micro /MICROHOURS) * 100
+    t_percent =   (m_micro /MICROHOURS) 
+    label_time_count[row].config(text='%10.8f' %( now.hour +t_percent%1))
+    t_percent *=100
     pbars[row]['value'] = t_percent
-    label_time_count[row].config(text='%f' %( now.hour +m_micro/MICROHOURS%1))
     label_percents[row].config(text="{:.0f}%".format(t_percent))
     
 # Days():
     row +=1
-    t_percent =   (h_micro /MICRODAY) * 100
+    t_percent =   (h_micro /MICRODAY) 
+    label_time_count[row].config(text='%10.8f' %( now.day + t_percent%1))
+    t_percent *=100
     pbars[row]['value'] = t_percent
-    label_time_count[row].config(text='%f' %( now.day +h_micro/MICRODAY%1))
+    
     label_percents[row].config(text="{:.0f}%".format(t_percent))
 
 
@@ -133,14 +156,27 @@ def Seconds():
     row +=1
     days_in_month = month_days(now.month,now.year)
     mircomonth = MICRODAY  * days_in_month
-    t_percent =   (d_micro /mircomonth) * 100
+    t_percent =   (d_micro /mircomonth) 
+    label_time_count[row].config(text='%10.8f' %( now.month+t_percent),justify=RIGHT)
+    t_percent *= 100
+    pbars[row]['value'] = t_percent 
+    label_percents[row].config(text="{:.0f}%".format(t_percent))
+
+
+#Years():
+    row+=1
+    y_micro = MICRODAY * now.timetuple().tm_yday + h_micro
+
+    t_percent =   (y_micro /MICROYEAR) 
+    label_time_count[row].config(text='%12.8f' %( now.year+t_percent))
+    t_percent *= 100
     pbars[row]['value'] = t_percent
-    label_time_count[row].config(text='%f' %( now.month+d_micro/mircomonth%1))
     label_percents[row].config(text="{:.0f}%".format(t_percent))
     canvas.after(10,Seconds)
 
-label_first_column = Create_time_labels()
 
+
+label_first_column = Create_time_labels()
 label_time_count = Create_time_count_labels()
 pbars = Create_progress_bars()
 label_percents = Create_percent_labels()
