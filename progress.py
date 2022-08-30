@@ -1,4 +1,3 @@
-
 from tkinter import *
 from datetime import datetime
 from tkinter.ttk import Progressbar, Style
@@ -6,7 +5,6 @@ from threading import Thread
 from time import sleep
 import time
 from  lib.time_constants import *
-
 
 #Progress Bar Length
 PLEN = 250
@@ -63,25 +61,37 @@ def Create_percent_labels():
     for i in range(6):
         labels.append(Label(app,text=i,background=BACKGROUND))
         labels[i].grid(row=i+1,column=column)       
-    return labels   
+    return labels 
 
-def Seconds():
+def  Create_sun_moon_labels():
+    row = 10
+    labels = [
+    Label(app,text="Dawn",background=BACKGROUND, anchor='e', width=10,justify='right'),
+    Label(app,text="Sunrise",background=BACKGROUND, anchor='e', width=10,justify='right'),
+    Label(app,text="Sunset",background=BACKGROUND, anchor='e',width=10,justify='right'),
+    Label(app,text="Dusk",background=BACKGROUND, anchor='e',width=10,justify='right'),
+    Label(app,text="Moon Phase",background=BACKGROUND, anchor='e', width=10,justify='right')
+    ]
+    for i in range(len(labels)):
+        labels[i].grid(row= row+i,column=0)
+    return labels
+
+def update_time():
+# Seconds:
     row = 0
     now = datetime.now()
-    time_display.config(text=now)
     s_micro = now.second * MICROSECONDS + now.microsecond
     m_micro = now.minute * MICROMINUTES + s_micro
     h_micro = now.hour * MICROHOURS + m_micro
     d_micro = now.day * MICRODAY + h_micro
     
-
     t_percent =   (now.microsecond /MICROSECONDS) 
     label_time_count[row].config(text='%10.8f' %( now.second +t_percent))
     t_percent *= 100
     pbars[row]['value'] = t_percent
     label_percents[row].config(text="{:.0f}%".format(t_percent))
     
-# Minutes():
+# Minutes:
     row +=1
     t_percent =   (s_micro/MICROMINUTES) 
     label_time_count[row].config(text='{:10.8f}'.format( now.minute +t_percent))
@@ -89,8 +99,7 @@ def Seconds():
     pbars[row]['value'] = t_percent
     label_percents[row].config(text="{:.0f}%".format(t_percent))
     
-
-# Hours():
+# Hours:
     row +=1
     t_percent =   (m_micro /MICROHOURS) 
     label_time_count[row].config(text='%10.8f' %( now.hour +t_percent%1))
@@ -98,17 +107,15 @@ def Seconds():
     pbars[row]['value'] = t_percent
     label_percents[row].config(text="{:.0f}%".format(t_percent))
     
-# Days():
+# Days:
     row +=1
     t_percent =   (h_micro /MICRODAY) 
     label_time_count[row].config(text='%10.8f' %( now.day + t_percent%1))
     t_percent *=100
-    pbars[row]['value'] = t_percent
-    
+    pbars[row]['value'] = t_percent  
     label_percents[row].config(text="{:.0f}%".format(t_percent))
 
-
-# months():
+# months:
     row +=1
     days_in_month = month_days(now.month,now.year)
     mircomonth = MICRODAY  * days_in_month
@@ -118,19 +125,18 @@ def Seconds():
     pbars[row]['value'] = t_percent 
     label_percents[row].config(text="{:.0f}%".format(t_percent))
 
-
-#Years():
+#Years:
     row+=1
     y_micro = MICRODAY * now.timetuple().tm_yday + h_micro
-
     t_percent =   (y_micro /MICROYEAR) 
     label_time_count[row].config(text='%12.8f' %( now.year+t_percent))
     t_percent *= 100
     pbars[row]['value'] = t_percent
     label_percents[row].config(text="{:.0f}%".format(t_percent))
     
-    canvas.after(10,Seconds)
-   
+    canvas.after(10,update_time)
+
+ #updates bits and unix time  
 def bitadd():
     label_bit_add.config(text=bits)
     index = 0
@@ -144,29 +150,43 @@ def bitadd():
         else:
             for i in range(len(bits)):
                 bits[i]="\u25A1"
-            break  
+            break
+    unixtime = int(time.time())
+    label_unix_time.config(text='Unix:' + str(unixtime))
     canvas.after(1000,bitadd)
 
-unixtime = int(time.time())
+#updates sunrise, sunset, 
+def update_sun():
+    now = datetime.now()
+    canvas.after(100000,update_sun)
+
+
+
+
+
 
 label_bit_add = Label(app,background=BACKGROUND)
 label_bit_add.grid(row=8,columnspan=4)
-label_unix_time = Label(app, text='Unix:' +str(unixtime),background=BACKGROUND)
+label_unix_time = Label(app, text='Unix:',background=BACKGROUND)
 label_unix_time.grid(row=9,columnspan=4)
 
 label_first_column = Create_time_labels()
 label_time_count = Create_time_count_labels()
 pbars = Create_progress_bars()
 label_percents = Create_percent_labels()
+label_sun = Create_sun_moon_labels()
 time_display = Label(app, text = 'TIME',background=BACKGROUND)
-
+time_display.config(text=now)
 time_display.grid(row=0,columnspan=4)
-b = Thread(target=bitadd)
+
+a = Thread(target=bitadd)
+a.start()
+
+b = Thread(target=update_time)
 b.start()
-new_thread = Thread(target=Seconds)
-new_thread.start()
 
-
+c = Thread(target=update_sun)
+c.start()
 
 
 #app.overrideredirect(True)
