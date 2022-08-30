@@ -4,6 +4,7 @@ from datetime import datetime
 from tkinter.ttk import Progressbar, Style
 from threading import Thread
 from time import sleep
+import time
 
 
 
@@ -28,7 +29,7 @@ MICROYEAR = MICRODAY * (365+LEAPYEAR)
 
 bits =[]
 for i in range(32):
-    bits.append("\u25A0")
+    bits.append("\u25A1")
 
 
      
@@ -183,20 +184,25 @@ def bitadd():
     label_bit_add.config(text=bits)
     index = 0
     while index < len(bits):  
-        if bits[index] == "\u25A0":
-            bits[index] ="\u25A1"
+        if bits[index] == "\u25A1":
+            bits[index] ="\u25A0"
             break 
-        elif bits[index] == "\u25A1" and index != len(bits)-1:
-            bits[index] = "\u25A0"
+        elif bits[index] == "\u25A0" and index != len(bits)-1:
+            bits[index] = "\u25A1"
             index+=1  
         else:
             for i in range(len(bits)):
-                bits[i]="\u25A0"
+                bits[i]="\u25A1"
             break  
     canvas.after(1000,bitadd)
 
+unixtime = int(time.time())
+
 label_bit_add = Label(app,background=BACKGROUND)
 label_bit_add.grid(row=8,columnspan=4)
+label_unix_time = Label(app, text='Unix:' +str(unixtime),background=BACKGROUND)
+label_unix_time.grid(row=9,columnspan=4)
+
 label_first_column = Create_time_labels()
 label_time_count = Create_time_count_labels()
 pbars = Create_progress_bars()
