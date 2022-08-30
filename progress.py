@@ -3,6 +3,7 @@ from tkinter import *
 from datetime import datetime
 from tkinter.ttk import Progressbar, Style
 from threading import Thread
+from time import sleep
 
 
 
@@ -15,7 +16,7 @@ MICROSECONDS = 1000000.0
 MICROMINUTES = MICROSECONDS * 60
 MICROHOURS = MICROMINUTES * 60
 MICRODAY  = MICROHOURS * 24 
-
+#Month calculated in function 
 now = datetime.now()
 if((now.year % 400 == 0) or  
      (now.year % 100 != 0) and  
@@ -23,8 +24,11 @@ if((now.year % 400 == 0) or
      LEAPYEAR = 1
 else:
     LEAPYEAR =0 
-
 MICROYEAR = MICRODAY * (365+LEAPYEAR)
+
+bits =[]
+for i in range(32):
+    bits.append("\u25A0")
 
 
      
@@ -87,7 +91,7 @@ def Create_time_count_labels():
     column= 1
     labels =[]
     for i in range(6):
-        labels.append(Label(app,text=i,background=BACKGROUND,relief='ridge',anchor='w', width=12,justify='right'))
+        labels.append(Label(app,text=i,background=BACKGROUND,relief='ridge',anchor='w', width=13,justify='right'))
         labels[i].grid(row=i+1,column=column)       
     return labels
 
@@ -172,19 +176,39 @@ def Seconds():
     t_percent *= 100
     pbars[row]['value'] = t_percent
     label_percents[row].config(text="{:.0f}%".format(t_percent))
+    
     canvas.after(10,Seconds)
+   
+def bitadd():
+    label_bit_add.config(text=bits)
+    index = 0
+    while index < len(bits):  
+        if bits[index] == "\u25A0":
+            bits[index] ="\u25A1"
+            break 
+        elif bits[index] == "\u25A1" and index != len(bits)-1:
+            bits[index] = "\u25A0"
+            index+=1  
+        else:
+            for i in range(len(bits)):
+                bits[i]="\u25A0"
+            break  
+    canvas.after(1000,bitadd)
 
-
-
+label_bit_add = Label(app,background=BACKGROUND)
+label_bit_add.grid(row=8,columnspan=4)
 label_first_column = Create_time_labels()
 label_time_count = Create_time_count_labels()
 pbars = Create_progress_bars()
 label_percents = Create_percent_labels()
 time_display = Label(app, text = 'TIME',background=BACKGROUND)
-time_display.grid(row=0,columnspan=4)
 
+time_display.grid(row=0,columnspan=4)
+b = Thread(target=bitadd)
+b.start()
 new_thread = Thread(target=Seconds)
 new_thread.start()
+
 
 
 
