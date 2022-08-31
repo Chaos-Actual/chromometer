@@ -1,8 +1,7 @@
-from getpass import getuser
 import astral, astral.sun, astral.moon
-from datetime import date, datetime, timezone, timedelta
+from datetime import datetime
 import pytz
-import ipinfo
+from . import ipinfo
 
 def get_sun_moon():
         
@@ -12,8 +11,6 @@ def get_sun_moon():
     tz =pytz.timezone(loc["timezone"])
     altitude = 0
     local = datetime.now()
-
-    print('====== astral ======')
     l = astral.LocationInfo('Custom Name', 'My Region', tz, latitude, longitude)
     s = astral.sun.sun(l.observer, date=local)
     sun_moon ={

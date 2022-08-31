@@ -3,13 +3,16 @@ from datetime import datetime
 #Progress Bar Length
 PLEN = 250
 BACKGROUND ='#3299a8'
+
 #microsecond constants
 MICROSECONDS = 1000000.0
 MICROMINUTES = MICROSECONDS * 60
 MICROHOURS = MICROMINUTES * 60
 MICRODAY  = MICROHOURS * 24 
 #Month calculated in function 
+
 now = datetime.now()
+TODAY = now.day
 if((now.year % 400 == 0) or  
      (now.year % 100 != 0) and  
      (now.year % 4 == 0)):   

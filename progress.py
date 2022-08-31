@@ -4,7 +4,8 @@ from tkinter.ttk import Progressbar, Style
 from threading import Thread
 from time import sleep
 import time
-from  lib.time_constants import *
+from lib.time_constants import *
+from lib.sun_moon import get_sun_moon
 
 #Progress Bar Length
 PLEN = 250
@@ -25,6 +26,7 @@ app.geometry("1000x500")
 canvas = Canvas(app)
 
 def  Create_time_labels():
+    row =10
     labels = [
     Label(app,text="Second",background=BACKGROUND, anchor='e', width=6,justify='right'),
     Label(app,text="Minute",background=BACKGROUND, anchor='e', width=6,justify='right'),
@@ -76,6 +78,17 @@ def  Create_sun_moon_labels():
         labels[i].grid(row= row+i,column=0)
     return labels
 
+def Create_sun_moon_times_label():
+    row = 10
+    labels = [
+    ]
+    for i in range(5):
+        labels.append(Label(app,background=BACKGROUND, anchor='w', width=30,justify='right'))
+
+    for i in range(len(labels)):
+        labels[i].grid(row= row+i,column=1,columnspan=2)
+    return labels
+
 def update_time():
 # Seconds:
     row = 0
@@ -83,7 +96,7 @@ def update_time():
     s_micro = now.second * MICROSECONDS + now.microsecond
     m_micro = now.minute * MICROMINUTES + s_micro
     h_micro = now.hour * MICROHOURS + m_micro
-    d_micro = now.day * MICRODAY + h_micro
+    d_micro = (now.day -1) * MICRODAY + h_micro
     
     t_percent =   (now.microsecond /MICROSECONDS) 
     label_time_count[row].config(text='%10.8f' %( now.second +t_percent))
@@ -102,7 +115,7 @@ def update_time():
 # Hours:
     row +=1
     t_percent =   (m_micro /MICROHOURS) 
-    label_time_count[row].config(text='%10.8f' %( now.hour +t_percent%1))
+    label_time_count[row].config(text='%10.8f' %( now.hour +t_percent))
     t_percent *=100
     pbars[row]['value'] = t_percent
     label_percents[row].config(text="{:.0f}%".format(t_percent))
@@ -110,7 +123,7 @@ def update_time():
 # Days:
     row +=1
     t_percent =   (h_micro /MICRODAY) 
-    label_time_count[row].config(text='%10.8f' %( now.day + t_percent%1))
+    label_time_count[row].config(text='%10.8f' %( now.day + t_percent))
     t_percent *=100
     pbars[row]['value'] = t_percent  
     label_percents[row].config(text="{:.0f}%".format(t_percent))
@@ -127,7 +140,7 @@ def update_time():
 
 #Years:
     row+=1
-    y_micro = MICRODAY * now.timetuple().tm_yday + h_micro
+    y_micro = MICRODAY * (now.timetuple().tm_yday -1) + h_micro
     t_percent =   (y_micro /MICROYEAR) 
     label_time_count[row].config(text='%12.8f' %( now.year+t_percent))
     t_percent *= 100
@@ -158,11 +171,30 @@ def bitadd():
 #updates sunrise, sunset, 
 def update_sun():
     now = datetime.now()
-    canvas.after(100000,update_sun)
+    print("here")
+    sm = get_sun_moon()
+    if sm["moon"] ==0:
+        moon = 'New moon' 
+    elif sm['moon'] <  7:
+        moon = 'Waxing Crescent'
+    elif sm['moon'] == 7:
+        moon = 'First Quarter'
+    elif sm['moon'] < 14:
+        moon = 'Waxing Gibbous'    
+    elif sm['moon'] == 14:
+        moon = 'Full'
+    elif sm['moon'] < 21:
+        moon = 'Waning Gibbous'
+    elif sm['moon'] == 21:
+        moon = 'Last Quarter'
+    elif sm['moon'] < 28:
+        moon = 'Waning Crescent'
 
-
-
-
+    label_sun_times[0].config(text=sm["dawn"].strftime('%H:%M:%S'))
+    label_sun_times[1].config(text=sm["sunrise"].strftime('%H:%M:%S'))
+    label_sun_times[2].config(text=sm["sunset"].strftime('%H:%M:%S'))
+    label_sun_times[3].config(text=sm["dusk"].strftime('%H:%M:%S'))
+    label_sun_times[4].config(text=moon)
 
 
 label_bit_add = Label(app,background=BACKGROUND)
@@ -175,6 +207,7 @@ label_time_count = Create_time_count_labels()
 pbars = Create_progress_bars()
 label_percents = Create_percent_labels()
 label_sun = Create_sun_moon_labels()
+label_sun_times = Create_sun_moon_times_label()
 time_display = Label(app, text = 'TIME',background=BACKGROUND)
 time_display.config(text=now)
 time_display.grid(row=0,columnspan=4)
@@ -184,9 +217,8 @@ a.start()
 
 b = Thread(target=update_time)
 b.start()
-
-c = Thread(target=update_sun)
-c.start()
+b = Thread(target=update_sun)
+b.start()
 
 
 #app.overrideredirect(True)
